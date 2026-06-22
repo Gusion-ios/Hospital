@@ -58,7 +58,7 @@ public class VMain extends JFrame implements CitaObserver {
         sidebar.setBackground(new Color(30, 30, 40));
         sidebar.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
 
-        JLabel titulo = new JLabel("🏥 Hospital");
+        JLabel titulo = new JLabel("Hospital");
         titulo.setForeground(Color.WHITE);
         titulo.setFont(new Font("Arial", Font.BOLD, 16));
         titulo.setAlignmentX(Component.CENTER_ALIGNMENT);
