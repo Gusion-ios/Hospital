@@ -5,7 +5,7 @@ import Hospital.comportamiento.EstadoPendiente;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Cita implements ICita{
+public class Cita implements ICita {
 
     private int id;
     private Paciente paciente;
@@ -15,7 +15,6 @@ public class Cita implements ICita{
     private boolean urgente;
     private double costo;
     private EstadoCita estado;
-    private List<Object> observers = new ArrayList<>();
 
     public Cita(int id, Paciente paciente, Medico medico, String fecha, String motivo, boolean urgente, double costo) {
         this.id = id;
@@ -29,19 +28,20 @@ public class Cita implements ICita{
     }
 
     public void confirmar() { estado.confirmar(this); }
-    public void cancelar() { estado.cancelar(this); }
+    public void cancelar()  { estado.cancelar(this); }
     public void completar() { estado.completar(this); }
 
-    public int getId() { return id; }
-    public Paciente getPaciente() { return paciente; }
-    public Medico getMedico() { return medico; }
-    public String getFecha() { return fecha; }
-    public void setFecha(String fecha) { this.fecha = fecha; }
-    public String getMotivo() { return motivo; }
-    public boolean isUrgente() { return urgente; }
-    public void setUrgente(boolean urgente) { this.urgente = urgente; }
-    public double getCosto() { return costo; }
-    public void setCosto(double costo) { this.costo = costo; }
-    public EstadoCita getEstado() { return estado; }
-    public void setEstado(EstadoCita estado) { this.estado = estado; }
+    public int getId()                          { return id; }
+    public Paciente getPaciente()               { return paciente; }
+    public Medico getMedico()                   { return medico; }
+    public String getFecha()                    { return fecha; }
+    public void setFecha(String fecha)          { this.fecha = fecha; }
+    public String getMotivo()                   { return motivo; }
+    public void setMotivo(String motivo)        { this.motivo = motivo; }
+    public boolean isUrgente()                  { return urgente; }
+    public void setUrgente(boolean urgente)     { this.urgente = urgente; }
+    public double getCosto()                    { return costo; }
+    public void setCosto(double costo)          { this.costo = costo; }
+    public EstadoCita getEstado()               { return estado; }
+    public void setEstado(EstadoCita estado)    { this.estado = estado; }
 }

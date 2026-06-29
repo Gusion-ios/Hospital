@@ -93,4 +93,22 @@ public class HospitalProxy {
         }
     }
 
+    public void actualizarPaciente(Paciente p) {
+        if (tienePermiso(RolUsuario.ADMIN, RolUsuario.RECEPCIONISTA)) {
+            facade.actualizarPaciente(p);
+        }
+    }
+
+    public void actualizarMedico(Medico m) {
+        if (tienePermiso(RolUsuario.ADMIN)) {
+            facade.actualizarMedico(m);
+        }
+    }
+
+    public void actualizarCita(Cita cita) {
+        if (tienePermiso(RolUsuario.ADMIN, RolUsuario.RECEPCIONISTA)) {
+            facade.actualizarCita(cita);
+        }
+    }
+
 }

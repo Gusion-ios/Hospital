@@ -40,5 +40,17 @@ public class GestorHospital {
         citas.clear();
     }
 
+    public int siguienteIdPaciente() {
+        return pacientes.stream().mapToInt(p -> p.getId()).max().orElse(0) + 1;
+    }
+
+    public int siguienteIdMedico() {
+        return medicos.stream().mapToInt(m -> m.getId()).max().orElse(0) + 1;
+    }
+
+    public int siguienteIdCita() {
+        return citas.stream().mapToInt(c -> c.getId()).max().orElse(0) + 1;
+    }
+
 
 }

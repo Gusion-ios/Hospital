@@ -10,7 +10,7 @@ import Hospital.model.Especialidad;
 import Hospital.model.Medico;
 import Hospital.model.Paciente;
 import Hospital.repository.*;
-
+import java.util.ArrayList;
 import java.util.List;
 
 public class HospitalFacade {
@@ -46,6 +46,7 @@ public class HospitalFacade {
         Paciente p = new Paciente(id, nombre, apellido, dni, telefono, historial);
         gestor.agregarPaciente(p);
         pacienteRepo.guardar(p);
+        notificarUI(null);
     }
 
     public void clonarPaciente(Paciente original) {
@@ -64,6 +65,7 @@ public class HospitalFacade {
         Medico m = MedicoFactory.crearMedico(id, nombre, apellido, especialidad);
         gestor.agregarMedico(m);
         medicoRepo.guardar(m);
+        notificarUI(null);
     }
 
     public void agendarCita(int id, Paciente paciente, Medico medico,
@@ -74,32 +76,39 @@ public class HospitalFacade {
                 .build();
         historial.ejecutar(new ComandoAgendarCita(cita, gestor));
         citaRepo.guardar(cita);
+        notificarUI(null);
     }
 
     public void confirmarCita(Cita cita) {
         cita.confirmar();
         citaRepo.guardar(cita);
+        notificarUI(cita);
     }
 
     public void cancelarCita(Cita cita) {
         historial.ejecutar(new ComandoCancelarCita(cita));
         alerta.actualizar(cita);
         citaRepo.guardar(cita);
+        notificarUI(cita);
     }
 
     public void completarCita(Cita cita) {
         cita.completar();
         citaRepo.guardar(cita);
+        notificarUI(cita);
     }
 
     public void eliminarPaciente(int id) {
         gestor.getPacientes().removeIf(p -> p.getId() == id);
         pacienteRepo.eliminar(id);
+        notificarUI(null);
     }
+
 
     public void eliminarMedico(int id) {
         gestor.getMedicos().removeIf(m -> m.getId() == id);
         medicoRepo.eliminar(id);
+        notificarUI(null);
     }
 
     public void deshacerUltimaAccion() {
@@ -110,4 +119,30 @@ public class HospitalFacade {
     public List<Paciente> getPacientes() { return gestor.getPacientes(); }
     public List<Medico>   getMedicos()   { return gestor.getMedicos(); }
     public List<Cita>     getCitas()     { return gestor.getCitas(); }
+
+    private List<CitaObserver> observersUI = new ArrayList<>();
+
+    public void agregarObserverUI(CitaObserver observer) {
+        observersUI.add(observer);
+    }
+
+    private void notificarUI(Cita cita) {
+        observersUI.forEach(o -> o.actualizar(cita));
+    }
+
+    public void actualizarPaciente(Paciente p) {
+        pacienteRepo.guardar(p);
+        notificarUI(null);
+    }
+
+    public void actualizarMedico(Medico m) {
+        medicoRepo.guardar(m);
+        notificarUI(null);
+    }
+
+    public void actualizarCita(Cita cita) {
+        citaRepo.guardar(cita);
+        notificarUI(cita);
+    }
+
 }

@@ -1,5 +1,6 @@
 package Hospital.estructural;
 
+import Hospital.comportamiento.CitaObserver;
 import Hospital.model.Especialidad;
 import Hospital.model.RolUsuario;
 import Hospital.model.Usuario;
@@ -47,4 +48,10 @@ public class Sesion {
 
     public HospitalProxy getProxy()         { return proxy; }
     public Usuario       getUsuarioActivo() { return usuarioActivo; }
+
+    // En Sesion, agrega este método:
+    public void registrarObserverUI(CitaObserver observer) {
+        facade.agregarObserverUI(observer);
+    }
+
 }

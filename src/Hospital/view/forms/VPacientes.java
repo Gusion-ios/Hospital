@@ -1,16 +1,15 @@
 package Hospital.view.forms;
 
+import Hospital.creacional.GestorHospital;
 import Hospital.estructural.Sesion;
 import Hospital.model.Paciente;
+import Hospital.model.RolUsuario;
 import Hospital.view.VMain;
-import Hospital.view.forms.components.SearchBar;
-import Hospital.view.forms.components.TextButton;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
+import javax.swing.table.*;
 import java.awt.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import java.util.List;
 
 public class VPacientes extends JPanel {
@@ -19,67 +18,79 @@ public class VPacientes extends JPanel {
     private DefaultTableModel modelo;
     private JTable tabla;
     private JTextField searchField;
-    private JPopupMenu popupSugerencias;
+
+    private JButton btnAgregar;
+    private JButton btnEditar;
+    private JButton btnClonar;
+    private JButton btnEliminar;
 
     public VPacientes(VMain parent) {
         this.parent = parent;
         setLayout(new BorderLayout());
-        setBackground(new Color(20, 20, 30));
-        setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
+        setBackground(VMain.FONDO);
+        setBorder(BorderFactory.createEmptyBorder(28, 28, 28, 28));
         construir();
     }
 
     private void construir() {
-        JLabel titulo = new JLabel("Gestión de Pacientes");
-        titulo.setForeground(Color.WHITE);
-        titulo.setFont(new Font("Arial", Font.BOLD, 22));
-        titulo.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
-        add(titulo, BorderLayout.NORTH);
+        // Header
+        JPanel header = new JPanel(new BorderLayout());
+        header.setOpaque(false);
+        header.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
 
+        JPanel headerLeft = new JPanel();
+        headerLeft.setLayout(new BoxLayout(headerLeft, BoxLayout.Y_AXIS));
+        headerLeft.setOpaque(false);
+        JLabel titulo = new JLabel("Gestion de Pacientes");
+        titulo.setForeground(VMain.TEXTO_DARK);
+        titulo.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        JLabel sub = new JLabel("Registro y administracion de pacientes");
+        sub.setForeground(VMain.TEXTO_GRAY);
+        sub.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        headerLeft.add(titulo);
+        headerLeft.add(Box.createVerticalStrut(3));
+        headerLeft.add(sub);
+        header.add(headerLeft, BorderLayout.WEST);
+
+        // Search
+        searchField = new JTextField(22);
+        searchField.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        searchField.putClientProperty("JTextField.placeholderText", "Buscar por nombre, apellido o ID...");
+        searchField.addKeyListener(new KeyAdapter() {
+            public void keyReleased(KeyEvent e) { buscar(searchField.getText().trim()); }
+        });
+        header.add(searchField, BorderLayout.EAST);
+        add(header, BorderLayout.NORTH);
+
+        // Tabla
         modelo = new DefaultTableModel(
-                new String[]{"ID", "Nombre", "Apellido", "DNI", "Teléfono"}, 0
-        ) {
-            public boolean isCellEditable(int r, int c) { return false; }
-        };
+                new String[]{"ID", "Nombre", "Apellido", "DNI", "Telefono"}, 0
+        ) { public boolean isCellEditable(int r, int c) { return false; } };
+
         tabla = new JTable(modelo);
-        tabla.setBackground(new Color(30, 30, 45));
-        tabla.setForeground(Color.WHITE);
-        tabla.setGridColor(new Color(50, 50, 70));
-        tabla.setRowHeight(30);
-        tabla.getTableHeader().setBackground(new Color(45, 45, 60));
-        tabla.getTableHeader().setForeground(Color.WHITE);
+        estilizarTabla(tabla);
 
         JScrollPane scroll = new JScrollPane(tabla);
-        scroll.getViewport().setBackground(new Color(30, 30, 45));
+        scroll.setBorder(BorderFactory.createLineBorder(VMain.BORDE, 1));
+        scroll.getViewport().setBackground(VMain.BLANCO);
         add(scroll, BorderLayout.CENTER);
 
-        JPanel sur = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        // Botones
+        JPanel sur = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 14));
         sur.setOpaque(false);
 
-        // Campo de búsqueda mejorado
-        searchField = new JTextField(20);
-        popupSugerencias = new JPopupMenu();
-
-        searchField.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyReleased(KeyEvent e) {
-                String query = searchField.getText().trim();
-                mostrarSugerencias(query);
-                buscar(query);
-            }
-        });
-
-        TextButton btnAgregar = new TextButton("+ Agregar", new Color(59, 130, 246));
-        TextButton btnClonar  = new TextButton("Clonar",    new Color(139, 92, 246));
-        TextButton btnEliminar = new TextButton("Eliminar", new Color(220, 53, 69));
+        btnAgregar  = crearBtn("+ Agregar",  VMain.AZUL_MEDIO);
+        btnEditar   = crearBtn("Editar",     VMain.NARANJA);
+        btnClonar   = crearBtn("Clonar",     VMain.MORADO);
+        btnEliminar = crearBtn("Eliminar",   VMain.ROJO);
 
         btnAgregar.addActionListener(e -> dialogoAgregar());
+        btnEditar.addActionListener(e -> editarSeleccionado());
         btnClonar.addActionListener(e -> clonarSeleccionado());
         btnEliminar.addActionListener(e -> eliminarSeleccionado());
 
-        sur.add(new JLabel("Buscar:"));
-        sur.add(searchField);
         sur.add(btnAgregar);
+        sur.add(btnEditar);
         sur.add(btnClonar);
         sur.add(btnEliminar);
         add(sur, BorderLayout.SOUTH);
@@ -87,134 +98,129 @@ public class VPacientes extends JPanel {
         refrescar();
     }
 
+    private void estilizarTabla(JTable t) {
+        t.setBackground(VMain.BLANCO);
+        t.setForeground(VMain.TEXTO_DARK);
+        t.setGridColor(VMain.BORDE);
+        t.setRowHeight(36);
+        t.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        t.setSelectionBackground(VMain.AZUL_CLARO);
+        t.setSelectionForeground(VMain.AZUL_OSCURO);
+        t.setShowVerticalLines(false);
+        t.getTableHeader().setBackground(VMain.FONDO);
+        t.getTableHeader().setForeground(VMain.TEXTO_GRAY);
+        t.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
+        t.getTableHeader().setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, VMain.BORDE));
+        t.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            public Component getTableCellRendererComponent(JTable table, Object value,
+                                                           boolean isSelected, boolean hasFocus, int row, int col) {
+                Component c = super.getTableCellRendererComponent(
+                        table, value, isSelected, hasFocus, row, col);
+                if (!isSelected) {
+                    c.setBackground(row % 2 == 0 ? VMain.BLANCO : new Color(248, 250, 252));
+                }
+                setBorder(BorderFactory.createEmptyBorder(0, 12, 0, 12));
+                return c;
+            }
+        });
+    }
+
+    private JButton crearBtn(String texto, Color color) {
+        JButton btn = new JButton(texto);
+        btn.setBackground(color);
+        btn.setForeground(Color.WHITE);
+        btn.setFocusPainted(false);
+        btn.setBorderPainted(false);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btn.setBorder(BorderFactory.createEmptyBorder(8, 18, 8, 18));
+        return btn;
+    }
+
+    public void aplicarPermisos() {
+        RolUsuario rol = Sesion.getInstancia().getUsuarioActivo().getRol();
+        switch (rol) {
+            case ADMIN -> {
+                btnAgregar.setVisible(true); btnEditar.setVisible(true);
+                btnClonar.setVisible(true);  btnEliminar.setVisible(true);
+            }
+            case RECEPCIONISTA -> {
+                btnAgregar.setVisible(true); btnEditar.setVisible(true);
+                btnClonar.setVisible(true);  btnEliminar.setVisible(false);
+            }
+            case MEDICO -> {
+                btnAgregar.setVisible(false); btnEditar.setVisible(false);
+                btnClonar.setVisible(false);  btnEliminar.setVisible(false);
+            }
+        }
+        revalidate(); repaint();
+    }
+
     public void refrescar() {
         modelo.setRowCount(0);
-        List<Paciente> lista = Sesion.getInstancia().getProxy().getPacientes();
-        for (Paciente p : lista) {
-            modelo.addRow(new Object[]{
-                    p.getId(), p.getNombre(), p.getApellido(), p.getDni(), p.getTelefono()
-            });
-        }
+        for (Paciente p : Sesion.getInstancia().getProxy().getPacientes())
+            modelo.addRow(new Object[]{p.getId(), p.getNombre(), p.getApellido(), p.getDni(), p.getTelefono()});
     }
 
     private void buscar(String query) {
         modelo.setRowCount(0);
         List<Paciente> lista = Sesion.getInstancia().getProxy().getPacientes();
-
-        if (query.isEmpty()) {
-            refrescar();
-            return;
-        }
-
-        if (query.matches("\\d+")) {
-            // Buscar por ID si es número
-            for (Paciente p : lista) {
-                if (String.valueOf(p.getId()).contains(query)) {
-                    modelo.addRow(new Object[]{
-                            p.getId(), p.getNombre(), p.getApellido(), p.getDni(), p.getTelefono()
-                    });
-                }
-            }
-        } else {
-            // Buscar por nombre/apellido si es texto
-            for (Paciente p : lista) {
-                if (p.getNombre().toLowerCase().contains(query.toLowerCase()) ||
-                        p.getApellido().toLowerCase().contains(query.toLowerCase())) {
-                    modelo.addRow(new Object[]{
-                            p.getId(), p.getNombre(), p.getApellido(), p.getDni(), p.getTelefono()
-                    });
-                }
-            }
-        }
-    }
-
-    private void mostrarSugerencias(String query) {
-        popupSugerencias.removeAll();
-        if (query.isEmpty()) return;
-
-        List<Paciente> lista = Sesion.getInstancia().getProxy().getPacientes();
+        if (query.isEmpty()) { refrescar(); return; }
         for (Paciente p : lista) {
-            if (query.matches("\\d+")) {
-                if (String.valueOf(p.getId()).contains(query)) {
-                    JMenuItem item = new JMenuItem("ID: " + p.getId() + " - " + p.getNombre());
-                    item.addActionListener(e -> searchField.setText(String.valueOf(p.getId())));
-                    popupSugerencias.add(item);
-                }
-            } else {
-                if (p.getNombre().toLowerCase().startsWith(query.toLowerCase()) ||
-                        p.getApellido().toLowerCase().startsWith(query.toLowerCase())) {
-                    JMenuItem item = new JMenuItem(p.getNombre() + " " + p.getApellido());
-                    item.addActionListener(e -> searchField.setText(p.getNombre()));
-                    popupSugerencias.add(item);
-                }
-            }
-        }
-
-        if (popupSugerencias.getComponentCount() > 0) {
-            popupSugerencias.show(searchField, 0, searchField.getHeight());
+            if (query.matches("\\d+") && String.valueOf(p.getId()).contains(query) ||
+                    p.getNombre().toLowerCase().contains(query.toLowerCase()) ||
+                    p.getApellido().toLowerCase().contains(query.toLowerCase()))
+                modelo.addRow(new Object[]{p.getId(), p.getNombre(), p.getApellido(), p.getDni(), p.getTelefono()});
         }
     }
 
     private void dialogoAgregar() {
-        JTextField fId       = new JTextField();
         JTextField fNombre   = new JTextField();
         JTextField fApellido = new JTextField();
         JTextField fDni      = new JTextField();
         JTextField fTelefono = new JTextField();
-
-        Object[] campos = {
-                "ID:",       fId,
-                "Nombre:",   fNombre,
-                "Apellido:", fApellido,
-                "DNI:",      fDni,
-                "Teléfono:", fTelefono
-        };
-
-        int result = JOptionPane.showConfirmDialog(
-                this, campos, "Nuevo Paciente", JOptionPane.OK_CANCEL_OPTION
-        );
-
+        int result = JOptionPane.showConfirmDialog(this,
+                new Object[]{"Nombre:", fNombre, "Apellido:", fApellido, "DNI:", fDni, "Telefono:", fTelefono},
+                "Nuevo Paciente", JOptionPane.OK_CANCEL_OPTION);
         if (result == JOptionPane.OK_OPTION) {
-            try {
-                Sesion.getInstancia().getProxy().registrarPaciente(
-                        Integer.parseInt(fId.getText()),
-                        fNombre.getText(), fApellido.getText(),
-                        fDni.getText(), fTelefono.getText(), ""
-                );
-                refrescar();
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "El ID debe ser un número.");
-            }
+            int id = GestorHospital.getInstancia().siguienteIdPaciente();
+            Sesion.getInstancia().getProxy().registrarPaciente(
+                    id, fNombre.getText(), fApellido.getText(), fDni.getText(), fTelefono.getText(), "");
+        }
+    }
+
+    private void editarSeleccionado() {
+        int fila = tabla.getSelectedRow();
+        if (fila < 0) { JOptionPane.showMessageDialog(this, "Selecciona un paciente."); return; }
+        Paciente p = Sesion.getInstancia().getProxy().getPacientes().get(fila);
+        JTextField fNombre   = new JTextField(p.getNombre());
+        JTextField fApellido = new JTextField(p.getApellido());
+        JTextField fDni      = new JTextField(p.getDni());
+        JTextField fTelefono = new JTextField(p.getTelefono());
+        int result = JOptionPane.showConfirmDialog(this,
+                new Object[]{"Nombre:", fNombre, "Apellido:", fApellido, "DNI:", fDni, "Telefono:", fTelefono},
+                "Editar Paciente", JOptionPane.OK_CANCEL_OPTION);
+        if (result == JOptionPane.OK_OPTION) {
+            p.setTelefono(fTelefono.getText());
+            Sesion.getInstancia().getProxy().actualizarPaciente(p);
         }
     }
 
     private void clonarSeleccionado() {
         int fila = tabla.getSelectedRow();
-        if (fila < 0) {
-            JOptionPane.showMessageDialog(this, "Selecciona un paciente.");
-            return;
-        }
-        List<Paciente> lista = Sesion.getInstancia().getProxy().getPacientes();
-        Paciente original = lista.get(fila);
+        if (fila < 0) { JOptionPane.showMessageDialog(this, "Selecciona un paciente."); return; }
+        Paciente original = Sesion.getInstancia().getProxy().getPacientes().get(fila);
         Sesion.getInstancia().getProxy().clonarPaciente(original);
-        refrescar();
         JOptionPane.showMessageDialog(this, "Paciente clonado correctamente.");
     }
 
     private void eliminarSeleccionado() {
         int fila = tabla.getSelectedRow();
-        if (fila < 0) {
-            JOptionPane.showMessageDialog(this, "Selecciona un paciente.");
-            return;
-        }
-        int confirm = JOptionPane.showConfirmDialog(
-                this, "¿Eliminar este paciente?", "Confirmar", JOptionPane.YES_NO_OPTION
-        );
+        if (fila < 0) { JOptionPane.showMessageDialog(this, "Selecciona un paciente."); return; }
+        int confirm = JOptionPane.showConfirmDialog(this, "Eliminar este paciente?", "Confirmar", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
-            List<Paciente> lista = Sesion.getInstancia().getProxy().getPacientes();
-            Paciente p = lista.get(fila);
+            Paciente p = Sesion.getInstancia().getProxy().getPacientes().get(fila);
             Sesion.getInstancia().getProxy().eliminarPaciente(p.getId());
-            refrescar();
         }
     }
 }
