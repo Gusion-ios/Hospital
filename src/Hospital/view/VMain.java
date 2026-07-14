@@ -174,8 +174,8 @@ public class VMain extends JFrame implements CitaObserver {
         sidebar.add(botonNav("  Configuracion", "CONFI"));
 
         // Card usuario al fondo
-        JPanel userCard = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
-        userCard.setMaximumSize(new Dimension(210, 60));
+        JPanel userCard = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        userCard.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
         userCard.setBackground(new Color(255, 255, 255, 20));
 
         JLabel avatarCircle = new JLabel("A");
@@ -214,10 +214,9 @@ public class VMain extends JFrame implements CitaObserver {
 
     private JButton botonNav(String texto, String panel) {
         JButton btn = new JButton(texto);
-        btn.setMaximumSize(new Dimension(210, 42));
-        btn.setPreferredSize(new Dimension(210, 42));
-        btn.setMinimumSize(new Dimension(210, 42));
-        btn.setAlignmentX(Component.LEFT_ALIGNMENT);
+        btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
+        btn.setPreferredSize(new Dimension(Integer.MAX_VALUE, 50));
+        btn.setAlignmentX(Component.CENTER_ALIGNMENT);
         btn.setHorizontalAlignment(SwingConstants.LEFT);
         btn.setBackground(AZUL_OSCURO);
         btn.setForeground(new Color(168, 196, 220));
